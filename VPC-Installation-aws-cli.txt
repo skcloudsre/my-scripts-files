@@ -1,0 +1,200 @@
+==============================
+VPC 
+==============================
+aws ec2 create-vpc \
+  --cidr-block 10.0.0.0/16 \
+  --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=my-vpc}]'
+or
+aws ec2 create-vpc --cidr-block 10.0.0.0/16 --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=my-vpc}]' --region ap-south-1
+#Create VPC in ap-south-1 region
+#   VpcId: "vpc-016bf6076545df98b"
+
+aws ec2 modify-vpc-attribute \
+  --vpc-id "$VPC_ID" \
+  --enable-dns-support
+  or
+  aws ec2 modify-vpc-attribute --vpc-id "$VPC_ID" --enable-dns-support
+  aws ec2 modify-vpc-attribute --vpc-id "vpc-016bf6076545df98b" --enable-dns-support --region ap-south-1
+  #Enable DNS Support
+  
+ aws ec2 modify-vpc-attribute \
+  --vpc-id "$VPC_ID" \
+  --enable-dns-hostnames
+  or
+ aws ec2 modify-vpc-attribute --vpc-id "$VPC_ID" --enable-dns-hostnames
+  aws ec2 modify-vpc-attribute --vpc-id "vpc-016bf6076545df98b" --enable-dns-hostnames --region ap-south-1
+  #Enable Host Name
+  
+  aws ec2 create-subnet \
+  --vpc-id "$VPC_ID" \
+  --cidr-block 10.0.1.0/24 \
+  --availability-zone ap-south-1a \
+  --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=public-subnet}]'
+or
+aws ec2 create-subnet --vpc-id "$VPC_ID" --cidr-block 10.0.1.0/24 --availability-zone ap-south-1a --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=public-subnet}]'
+aws ec2 create-subnet --vpc-id "vpc-016bf6076545df98b" --cidr-block 10.0.1.0/24 --availability-zone ap-south-1a --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=public-subnet}]' --region ap-south-1
+aws ec2 create-subnet --vpc-id "vpc-016bf6076545df98b" --cidr-block 10.0.2.0/24 --availability-zone ap-south-1a --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=private-subnet}]' --region ap-south-1
+#Create subnets
+"SubnetId": "subnet-07568ba7b5939ba5b" --->Public SubnetId
+"SubnetId": "subnet-0ed8490d0d825306e" --->Private SubnetId
+
+aws ec2 create-internet-gateway \
+  --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value=my-igw}]'
+or
+aws ec2 create-internet-gateway --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value=my-igw}]' --region ap-south-1
+#Create InternetGateway
+"InternetGatewayId": "igw-0cf2e3401a1128e3c"
+
+aws ec2 attach-internet-gateway \
+  --vpc-id "$VPC_ID" \
+  --internet-gateway-id "$IGW_ID"
+or
+aws ec2 attach-internet-gateway --vpc-id "$VPC_ID" --internet-gateway-id "$IGW_ID" --region ap-south-1
+aws ec2 attach-internet-gateway --vpc-id "vpc-016bf6076545df98b" --internet-gateway-id "igw-0cf2e3401a1128e3c" --region ap-south-1
+#Attach Internet Gateway to VPC
+
+aws ec2 create-route-table \
+  --vpc-id "$VPC_ID" \
+  --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=public-rt}]'
+or
+aws ec2 create-route-table --vpc-id "$VPC_ID" --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=public-rt}]'
+aws ec2 create-route-table --vpc-id "vpc-016bf6076545df98b" --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=public-rt}]' --region ap-south-1
+#Create a Route Table
+"RouteTableId": "rtb-010b09c857426f4f8"
+
+aws ec2 create-route \
+  --route-table-id "$RT_ID" \
+  --destination-cidr-block 0.0.0.0/0 \
+  --gateway-id "$IGW_ID"
+or
+aws ec2 create-route --route-table-id "$RT_ID" --destination-cidr-block 0.0.0.0/0 --gateway-id "$IGW_ID"
+aws ec2 create-route --route-table-id "rtb-010b09c857426f4f8" --destination-cidr-block 0.0.0.0/0 --gateway-id "igw-0cf2e3401a1128e3c" --region ap-south-1
+#Add a route to the Internet Gateway
+
+aws ec2 associate-route-table \
+  --route-table-id "$RT_ID" \
+  --subnet-id "$SUBNET_ID"
+or
+aws ec2 associate-route-table --route-table-id "$RT_ID" --subnet-id "$SUBNET_ID"
+aws ec2 associate-route-table --route-table-id "rtb-010b09c857426f4f8" --subnet-id "subnet-07568ba7b5939ba5b" --region ap-south-1
+#Associate the route table with the subnet
+
+aws ec2 describe-vpcs `
+  --region ap-south-1 `
+  --filters "Name=tag:Name,Values=my-vpc" `
+  --query "Vpcs[*].[VpcId,Tags[?Key=='Name']|[0].Value,CidrBlock]" `
+  --output table
+or
+aws ec2 describe-vpcs --region ap-south-1 --filters "Name=tag:Name,Values=my-vpc" --query "Vpcs[*].[VpcId,Tags[?Key=='Name']|[0].Value,CidrBlock]" --output table
+#Find the VPC ID
+
+aws ec2 delete-vpc `
+  --vpc-id vpc-0123456789abcdef `
+  --region ap-south-1
+ or
+ aws ec2 delete-vpc --vpc-id vpc-016bf6076545df98b --region ap-south-1
+#delete VPC
+
+
+
+PS C:\Users\SESHU_VANI> aws ec2 describe-subnets `
+>>   --region ap-south-1 `
+>>   --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" `
+>>   --query "Subnets[*].[SubnetId,CidrBlock,AvailabilityZone]" `
+>>   --output table
+------------------------------------------------------------
+|                      DescribeSubnets                     |
++--------------------------+---------------+---------------+
+|  subnet-0ed8490d0d825306e|  10.0.2.0/24  |  ap-south-1a  |
+|  subnet-07568ba7b5939ba5b|  10.0.1.0/24  |  ap-south-1a  |
++--------------------------+---------------+---------------+
+#Check what subnets exist
+
+aws ec2 describe-subnets `
+  --region ap-south-1 `
+  --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" `
+  --query "Subnets[*].[SubnetId,CidrBlock,AvailabilityZone]" `
+  --output table
+or
+aws ec2 describe-subnets --region ap-south-1 --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "Subnets[*].[SubnetId,CidrBlock,AvailabilityZone]" --output table
+#Check what subnets exist
+
+aws ec2 describe-internet-gateways `
+  --region ap-south-1 `
+  --filters "Name=attachment.vpc-id,Values=vpc-016bf6076545df98b" `
+  --query "InternetGateways[*].InternetGatewayId" `
+  --output text
+or
+aws ec2 describe-internet-gateways --region ap-south-1 --filters "Name=attachment.vpc-id,Values=vpc-016bf6076545df98b" --query "InternetGateways[*].InternetGatewayId" --output text
+#Check for Internet Gateway
+
+aws ec2 detach-internet-gateway `
+  --internet-gateway-id igw-0123456789abcdef `
+  --vpc-id vpc-016bf6076545df98b `
+  --region ap-south-1
+or
+aws ec2 detach-internet-gateway --internet-gateway-id igw-0cf2e3401a1128e3c --vpc-id vpc-016bf6076545df98b --region ap-south-1
+#detach internet gateway
+
+aws ec2 delete-internet-gateway `
+  --internet-gateway-id igw-0123456789abcdef `
+  --region ap-south-1
+or
+aws ec2 delete-internet-gateway --internet-gateway-id igw-0123456789abcdef --region ap-south-1
+aws ec2 delete-internet-gateway --internet-gateway-id igw-0cf2e3401a1128e3c --region ap-south-1
+#delete internet gateway
+
+aws ec2 describe-nat-gateways `
+  --region ap-south-1 `
+  --filter "Name=vpc-id,Values=vpc-016bf6076545df98b" `
+  --query "NatGateways[*].[NatGatewayId,State]" `
+  --output table
+or
+aws ec2 describe-nat-gateways --region ap-south-1 --filter "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "NatGateways[*].[NatGatewayId,State]" --output table
+aws ec2 describe-nat-gateways --region ap-south-1 --filter "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "NatGateways[*].[NatGatewayId,State]" --output table
+#Check for NAT Gateways
+
+aws ec2 describe-network-interfaces `
+  --region ap-south-1 `
+  --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" `
+  --query "NetworkInterfaces[*].[NetworkInterfaceId,Status,Description]" `
+  --output table
+or
+aws ec2 describe-network-interfaces --region ap-south-1 --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "NetworkInterfaces[*].[NetworkInterfaceId,Status,Description]" --output table
+aws ec2 describe-network-interfaces --region ap-south-1 --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "NetworkInterfaces[*].[NetworkInterfaceId,Status,Description]" --output table
+#Check for network interfaces
+
+aws ec2 describe-route-tables `
+  --region ap-south-1 `
+  --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" `
+  --query "RouteTables[*].[RouteTableId,Associations[*].Main]" `
+  --output table
+or
+aws ec2 describe-route-tables --region ap-south-1 --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "RouteTables[*].[RouteTableId,Associations[*].Main]" --output table
+aws ec2 describe-route-tables --region ap-south-1 --filters "Name=vpc-id,Values=vpc-016bf6076545df98b" --query "RouteTables[*].[RouteTableId,Associations[*].Main]" --output table
+# Check for Subnets
+
+aws ec2 delete-route-table `
+  --route-table-id rtb-010b09c857426f4f8 `
+  --region ap-south-1
+or
+aws ec2 delete-route-table --route-table-id rtb-010b09c857426f4f8 --region ap-south-1
+#delete route table
+
+aws ec2 describe-route-tables `
+  --route-table-ids rtb-010b09c857426f4f8 `
+  --region ap-south-1 `
+  --query "RouteTables[0].Associations[*].[RouteTableAssociationId,SubnetId,Main]" `
+  --output table
+or
+aws ec2 describe-route-tables --route-table-ids rtb-010b09c857426f4f8 --region ap-south-1 --query "RouteTables[0].Associations[*].[RouteTableAssociationId,SubnetId,Main]" --output table
+#Check the route table association
+
+aws ec2 disassociate-route-table `
+  --association-id rtbassoc-xxxxxxxx `
+  --region ap-south-1
+  or
+ aws ec2 disassociate-route-table --association-id rtbassoc-06f60831ae8e20568 --region ap-south-1
+#Remove the association
+
+
